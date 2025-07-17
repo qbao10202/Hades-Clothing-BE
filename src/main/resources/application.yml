@@ -138,10 +138,7 @@ spring:
   cache:
     type: simple
     cache-names: products,users,orders,customers
-  sql:
-    init:
-      mode: always # Always run on startup in prod
-      data-locations: classpath:init.sql # Import init.sql from resources
+
 
 logging:
   level:
