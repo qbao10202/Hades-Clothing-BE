@@ -80,7 +80,7 @@ app:
   version: ${APP_VERSION:1.0.0}
   environment: ${APP_ENVIRONMENT:production}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000, https://hades-clothing-fe.vercel.app/}
   file:
     upload:
       max-size: 10MB
