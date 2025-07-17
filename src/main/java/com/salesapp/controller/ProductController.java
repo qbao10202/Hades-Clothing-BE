@@ -152,8 +152,8 @@ public class ProductController {
     @PreAuthorize("hasAuthority('product:write')")
     public ResponseEntity<?> uploadProductImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
-            // Save file to uploads directory
-            String uploadsDir = "uploads/products/" + id;
+            // Use absolute path for persistent volume
+            String uploadsDir = "/app/uploads/products/" + id;
             Path uploadPath = Paths.get(uploadsDir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
@@ -162,7 +162,7 @@ public class ProductController {
             Path filePath = uploadPath.resolve(filename);
             Files.copy(file.getInputStream(), filePath);
             // Save image info to DB
-            productService.addProductImage(id, "/" + uploadsDir + "/" + filename);
+            productService.addProductImage(id, "/uploads/products/" + id + "/" + filename);
             return ResponseEntity.ok().body("Image uploaded successfully");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Failed to upload image: " + e.getMessage());
