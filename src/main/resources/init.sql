@@ -15,6 +15,38 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+-- Move users table creation here
+DROP TABLE IF EXISTS `users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `first_name` varchar(50) NOT NULL,
+  `last_name` varchar(50) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `avatar_url` varchar(255) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `email_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `phone_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `last_login` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+-- Dumping data for table `users`
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (2,'admin','admin@gmail.com','$2a$10$AuKk9X9Dv/VOepx0veiofuccgJwPXC2SmRIfak/1KkOmqmAo59AF.','Admin','User',NULL,NULL,1,1,0,'2025-07-16 08:23:33','2025-06-29 11:12:37','2025-07-17 08:58:30'),(3,'bao','quocbao01651@gmail.com','$2a$10$1P019yJ.V/Yty229kQ9c6OL3GpnA2pOo5kqlk5dJa9BzDvW1zFhuu','Nguyễn','Bảo',NULL,NULL,1,0,0,'2025-07-05 01:46:37','2025-07-05 07:20:08','2025-07-05 07:20:08'),(4,'lam','quocbao0165sddsfd@gmail.com','$2a$10$0bhFWBJI4Y49YXcgcJyJIudecIAgFI8/1b.eb01plrQjSA0vnpL.S','lam','lam',NULL,NULL,1,0,0,NULL,'2025-07-10 11:43:16','2025-07-10 11:43:16'),(5,'nhi','nhi@gmail.com','$2a$10$9OyqbKJWX8t3FyGmk.vwd.IszGsl.u5D7fZlgqIUY8kwGKB7ihf.O','nhi','nguyen',NULL,NULL,1,0,0,'2025-07-16 08:17:23','2025-07-13 05:12:02','2025-07-16 08:17:23');
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
 --
 -- Table structure for table `cart_items`
 --
@@ -608,44 +640,6 @@ LOCK TABLES `user_roles` WRITE;
 /*!40000 ALTER TABLE `user_roles` DISABLE KEYS */;
 INSERT INTO `user_roles` VALUES (2,1),(3,5),(4,5),(5,3),(5,5);
 /*!40000 ALTER TABLE `user_roles` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `users`
---
-
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `users` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `first_name` varchar(50) NOT NULL,
-  `last_name` varchar(50) NOT NULL,
-  `phone` varchar(20) DEFAULT NULL,
-  `avatar_url` varchar(255) DEFAULT NULL,
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `email_verified` tinyint(1) NOT NULL DEFAULT 0,
-  `phone_verified` tinyint(1) NOT NULL DEFAULT 0,
-  `last_login` timestamp NULL DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'admin','admin@gmail.com','$2a$10$AuKk9X9Dv/VOepx0veiofuccgJwPXC2SmRIfak/1KkOmqmAo59AF.','Admin','User',NULL,NULL,1,1,0,'2025-07-16 08:23:33','2025-06-29 11:12:37','2025-07-17 08:58:30'),(3,'bao','quocbao01651@gmail.com','$2a$10$1P019yJ.V/Yty229kQ9c6OL3GpnA2pOo5kqlk5dJa9BzDvW1zFhuu','Nguyễn','Bảo',NULL,NULL,1,0,0,'2025-07-05 01:46:37','2025-07-05 07:20:08','2025-07-05 07:20:08'),(4,'lam','quocbao0165sddsfd@gmail.com','$2a$10$0bhFWBJI4Y49YXcgcJyJIudecIAgFI8/1b.eb01plrQjSA0vnpL.S','lam','lam',NULL,NULL,1,0,0,NULL,'2025-07-10 11:43:16','2025-07-10 11:43:16'),(5,'nhi','nhi@gmail.com','$2a$10$9OyqbKJWX8t3FyGmk.vwd.IszGsl.u5D7fZlgqIUY8kwGKB7ihf.O','nhi','nguyen',NULL,NULL,1,0,0,'2025-07-16 08:17:23','2025-07-13 05:12:02','2025-07-16 08:17:23');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
