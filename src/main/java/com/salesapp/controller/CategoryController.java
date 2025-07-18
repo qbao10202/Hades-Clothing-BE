@@ -154,6 +154,11 @@ public class CategoryController {
                 category.setImageContentType(file.getContentType());
                 category.setImageData(file.getBytes());
                 category.setImageUrl(file.getOriginalFilename());
+            } else {
+                // No image provided, leave image fields null
+                category.setImageContentType(null);
+                category.setImageData(null);
+                category.setImageUrl(null);
             }
             Category savedCategory = categoryRepository.save(category);
             return ResponseEntity.ok(savedCategory);
