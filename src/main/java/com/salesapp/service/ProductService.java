@@ -146,14 +146,16 @@ public class ProductService {
         return dto;
     }
     
-    public void addProductImage(Long productId, String imageUrl) {
+    public void addProductImage(Long productId, String filename, String contentType, byte[] data) {
         Product product = productRepository.findById(productId).orElse(null);
         if (product != null) {
             // Remove all old images
             product.getImages().clear();
             ProductImage image = new ProductImage();
             image.setProduct(product);
-            image.setImageUrl(imageUrl);
+            image.setImageUrl(filename); // store filename
+            image.setContentType(contentType);
+            image.setData(data);
             image.setPrimary(true);
             image.setSortOrder(1);
             product.getImages().add(image);

@@ -34,6 +34,13 @@ public class Category {
     @Column(name = "image_url")
     private String imageUrl;
     
+    @Column(name = "image_content_type")
+    private String imageContentType;
+
+    @Lob
+    @Column(name = "image_data", columnDefinition = "LONGBLOB")
+    private byte[] imageData;
+    
     @Column(name = "parent_id")
     private Long parentId;
     
@@ -94,6 +101,19 @@ public class Category {
     
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+    
+    public String getImageContentType() {
+        return imageContentType;
+    }
+    public void setImageContentType(String imageContentType) {
+        this.imageContentType = imageContentType;
+    }
+    public byte[] getImageData() {
+        return imageData;
+    }
+    public void setImageData(byte[] imageData) {
+        this.imageData = imageData;
     }
     
     public Long getParentId() {

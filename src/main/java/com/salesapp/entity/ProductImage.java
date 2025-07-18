@@ -31,6 +31,13 @@ public class ProductImage {
     @Column(name = "is_primary")
     private boolean isPrimary = false;
     
+    @Column(name = "content_type")
+    private String contentType;
+
+    @Lob
+    @Column(name = "data", columnDefinition = "LONGBLOB")
+    private byte[] data;
+    
     @CreatedDate
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -90,6 +97,19 @@ public class ProductImage {
     
     public void setPrimary(boolean primary) {
         isPrimary = primary;
+    }
+    
+    public String getContentType() {
+        return contentType;
+    }
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+    public byte[] getData() {
+        return data;
+    }
+    public void setData(byte[] data) {
+        this.data = data;
     }
     
     public LocalDateTime getCreatedAt() {

@@ -1,7 +1,9 @@
 package com.salesapp.controller;
 
 import com.salesapp.entity.Product;
+import com.salesapp.entity.ProductImage;
 import com.salesapp.repository.CategoryRepository;
+import com.salesapp.repository.ProductImageRepository;
 import com.salesapp.service.ProductService;
 import com.salesapp.dto.ProductDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,9 +19,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.core.io.ByteArrayResource;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +38,9 @@ public class ProductController {
     
     @Autowired
     private ProductService productService;
+    
+    @Autowired
+    private ProductImageRepository productImageRepository;
     
     @GetMapping
     @Operation(summary = "Get all products", description = "Retrieve all active products with pagination")
@@ -152,25 +157,33 @@ public class ProductController {
     @PreAuthorize("hasAuthority('product:write')")
     public ResponseEntity<?> uploadProductImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
-            String uploadsRoot = "/app/uploads";
-            String uploadsDir = uploadsRoot + "/products/" + id;
-            Path rootPath = Paths.get(uploadsRoot);
-            if (!Files.exists(rootPath)) {
-                Files.createDirectories(rootPath);
-            }
-            Path uploadPath = Paths.get(uploadsDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
+            Product product = productService.getProductById(id).orElse(null);
+            if (product == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
             }
             String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path filePath = uploadPath.resolve(filename);
-            Files.copy(file.getInputStream(), filePath);
-            productService.addProductImage(id, "/uploads/products/" + id + "/" + filename);
+            productService.addProductImage(id, filename, file.getContentType(), file.getBytes());
             return ResponseEntity.ok().body("Image uploaded successfully");
         } catch (Exception e) {
-            e.printStackTrace(); // Add this for debugging
+            e.printStackTrace();
             return ResponseEntity.status(500).body("Failed to upload image: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/{productId}/images/{filename:.+}")
+    @Operation(summary = "Serve product image from DB", description = "Serve a product image by filename from the database")
+    public ResponseEntity<?> serveProductImage(@PathVariable Long productId, @PathVariable String filename) {
+        ProductImage image = productImageRepository.findImagesByProductId(productId).stream()
+                .filter(img -> filename.equals(img.getImageUrl()))
+                .findFirst().orElse(null);
+        if (image == null || image.getData() == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
+        }
+        ByteArrayResource resource = new ByteArrayResource(image.getData());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + image.getImageUrl() + "\"")
+                .contentType(MediaType.parseMediaType(image.getContentType()))
+                .body(resource);
     }
     
     @GetMapping("/featured")
