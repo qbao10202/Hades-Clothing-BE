@@ -173,15 +173,17 @@ public class CategoryController {
             if (existingCategoryOpt.isEmpty()) {
                 return ResponseEntity.status(404).body("Category not found");
             }
+            Category existing = existingCategoryOpt.get();
             Category category = objectMapper.readValue(categoryJson, Category.class);
             category.setId(id);
+            // Preserve createdAt
+            category.setCreatedAt(existing.getCreatedAt());
             if (file != null && !file.isEmpty()) {
                 category.setImageContentType(file.getContentType());
                 category.setImageData(file.getBytes());
                 category.setImageUrl(file.getOriginalFilename());
             } else {
                 // Preserve existing image if not updated
-                Category existing = existingCategoryOpt.get();
                 category.setImageContentType(existing.getImageContentType());
                 category.setImageData(existing.getImageData());
                 category.setImageUrl(existing.getImageUrl());
