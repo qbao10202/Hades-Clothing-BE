@@ -85,11 +85,7 @@ public class ProductService {
     }
     
     public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id).orElse(null);
-        if (product != null) {
-            product.setActive(false);
-            productRepository.save(product);
-        }
+        productRepository.deleteById(id);
     }
     
     public boolean updateStock(Long productId, Integer quantity) {

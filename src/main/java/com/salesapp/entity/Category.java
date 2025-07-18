@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "categories")
@@ -52,7 +52,7 @@ public class Category {
     
     @CreatedDate
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     
     // Constructors
     public Category() {}
@@ -140,11 +140,11 @@ public class Category {
         isActive = active;
     }
     
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 } 

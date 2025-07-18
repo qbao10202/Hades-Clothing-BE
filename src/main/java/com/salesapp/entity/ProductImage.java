@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Table(name = "product_images")
@@ -40,7 +40,7 @@ public class ProductImage {
     
     @CreatedDate
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
     
     // Constructors
     public ProductImage() {}
@@ -112,11 +112,11 @@ public class ProductImage {
         this.data = data;
     }
     
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
     
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 } 
