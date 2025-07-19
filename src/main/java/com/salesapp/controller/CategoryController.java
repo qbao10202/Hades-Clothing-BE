@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -128,54 +129,51 @@ public class CategoryController {
         }
     }
 
-    @RequestMapping(value = "/{id}/image", method = RequestMethod.OPTIONS)
-    public ResponseEntity<?> handleCategoryImageOptions(@PathVariable Long id) {
-        return ResponseEntity.ok()
-                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, OPTIONS")
-                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*")
-                .header(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "86400")
-                .build();
-    }
-
     @GetMapping("/{id}/image")
     @Operation(summary = "Serve category image from DB", description = "Serve a category image as binary data from the database")
     public ResponseEntity<?> serveCategoryImage(@PathVariable Long id) {
-        try {
-            Optional<Category> categoryOpt = categoryRepository.findById(id);
-            if (categoryOpt.isPresent() && categoryOpt.get().getImageData() != null) {
-                Category category = categoryOpt.get();
-                
-                // Determine content type - fallback to image/jpeg if not set
-                String contentType = category.getImageContentType();
-                if (contentType == null || contentType.isEmpty()) {
-                    contentType = "image/jpeg";
-                }
-                
-                ByteArrayResource resource = new ByteArrayResource(category.getImageData());
-                
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + category.getImageUrl() + "\"")
-                        .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000") // Cache for 1 year
-                        .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-                        .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, OPTIONS")
-                        .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*")
-                        .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Content-Length, Content-Type")
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .contentLength(category.getImageData().length)
-                        .body(resource);
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                        .header(HttpHeaders.PRAGMA, "no-cache")
-                        .header(HttpHeaders.EXPIRES, "0")
-                        .body("Image not found");
+        System.out.println("Serving category image for ID: " + id);
+        Optional<Category> categoryOpt = categoryRepository.findById(id);
+        if (categoryOpt.isPresent() && categoryOpt.get().getImageData() != null) {
+            Category category = categoryOpt.get();
+            System.out.println("Category found: " + category.getName() + ", Image data size: " + category.getImageData().length);
+            ByteArrayResource resource = new ByteArrayResource(category.getImageData());
+            
+            // Ensure we have a valid content type
+            String contentType = category.getImageContentType();
+            if (contentType == null || contentType.trim().isEmpty()) {
+                contentType = "image/jpeg"; // Default to JPEG if content type is missing
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                    .body("Error serving image: " + e.getMessage());
+            System.out.println("Content type: " + contentType);
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + category.getImageUrl() + "\"")
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .body(resource);
+        } else {
+            System.out.println("Category not found or no image data for ID: " + id);
+            // Return 404 without body so frontend can handle with onImageError
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{id}/image/status")
+    @Operation(summary = "Check category image status", description = "Check if a category has an image and return status info")
+    public ResponseEntity<?> checkCategoryImageStatus(@PathVariable Long id) {
+        Optional<Category> categoryOpt = categoryRepository.findById(id);
+        if (categoryOpt.isPresent()) {
+            Category category = categoryOpt.get();
+            boolean hasImage = category.getImageData() != null && category.getImageData().length > 0;
+            return ResponseEntity.ok(Map.of(
+                "categoryId", id,
+                "categoryName", category.getName(),
+                "hasImage", hasImage,
+                "imageDataSize", hasImage ? category.getImageData().length : 0,
+                "imageContentType", category.getImageContentType(),
+                "imageUrl", category.getImageUrl()
+            ));
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
 

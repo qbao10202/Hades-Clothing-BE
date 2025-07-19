@@ -171,56 +171,51 @@ public class ProductController {
         }
     }
 
-    @RequestMapping(value = "/{productId}/images/{filename:.+}", method = RequestMethod.OPTIONS)
-    public ResponseEntity<?> handleImageOptions(@PathVariable Long productId, @PathVariable String filename) {
-        return ResponseEntity.ok()
-                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, OPTIONS")
-                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*")
-                .header(HttpHeaders.ACCESS_CONTROL_MAX_AGE, "86400")
-                .build();
-    }
-
     @GetMapping("/{productId}/images/{filename:.+}")
     @Operation(summary = "Serve product image from DB", description = "Serve a product image by filename from the database")
     public ResponseEntity<?> serveProductImage(@PathVariable Long productId, @PathVariable String filename) {
-        try {
-            ProductImage image = productImageRepository.findImagesByProductId(productId).stream()
-                    .filter(img -> filename.equals(img.getImageUrl()))
-                    .findFirst().orElse(null);
-            
-            if (image == null || image.getData() == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                        .header(HttpHeaders.PRAGMA, "no-cache")
-                        .header(HttpHeaders.EXPIRES, "0")
-                        .body("Image not found");
-            }
-            
-            // Determine content type - fallback to image/jpeg if not set
-            String contentType = image.getContentType();
-            if (contentType == null || contentType.isEmpty()) {
-                contentType = "image/jpeg";
-            }
-            
-            ByteArrayResource resource = new ByteArrayResource(image.getData());
-            
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + image.getImageUrl() + "\"")
-                    .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000") // Cache for 1 year
-                    .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
-                    .header(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET, OPTIONS")
-                    .header(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, "*")
-                    .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Content-Length, Content-Type")
-                    .contentType(MediaType.parseMediaType(contentType))
-                    .contentLength(image.getData().length)
-                    .body(resource);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                    .body("Error serving image: " + e.getMessage());
+        System.out.println("Serving product image for productId: " + productId + ", filename: " + filename);
+        ProductImage image = productImageRepository.findImagesByProductId(productId).stream()
+                .filter(img -> filename.equals(img.getImageUrl()))
+                .findFirst().orElse(null);
+        if (image == null || image.getData() == null) {
+            System.out.println("Product image not found for productId: " + productId + ", filename: " + filename);
+            // Return 404 without body so frontend can handle with onImageError
+            return ResponseEntity.notFound().build();
         }
+        System.out.println("Product image found, data size: " + image.getData().length);
+        ByteArrayResource resource = new ByteArrayResource(image.getData());
+        
+        // Ensure we have a valid content type
+        String contentType = image.getContentType();
+        if (contentType == null || contentType.trim().isEmpty()) {
+            contentType = "image/jpeg"; // Default to JPEG if content type is missing
+        }
+        System.out.println("Content type: " + contentType);
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + image.getImageUrl() + "\"")
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(resource);
+    }
+
+    @GetMapping("/{productId}/images/status")
+    @Operation(summary = "Check product images status", description = "Check if a product has images and return status info")
+    public ResponseEntity<?> checkProductImagesStatus(@PathVariable Long productId) {
+        List<ProductImage> images = productImageRepository.findImagesByProductId(productId);
+        boolean hasImages = images.stream().anyMatch(img -> img.getData() != null && img.getData().length > 0);
+        
+        return ResponseEntity.ok(Map.of(
+            "productId", productId,
+            "hasImages", hasImages,
+            "imageCount", images.size(),
+            "images", images.stream().map(img -> Map.of(
+                "id", img.getId(),
+                "imageUrl", img.getImageUrl(),
+                "contentType", img.getContentType(),
+                "dataSize", img.getData() != null ? img.getData().length : 0
+            )).collect(Collectors.toList())
+        ));
     }
     
     @GetMapping("/featured")
