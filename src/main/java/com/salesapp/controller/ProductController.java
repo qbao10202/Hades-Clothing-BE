@@ -26,6 +26,7 @@ import org.springframework.core.io.ByteArrayResource;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -159,14 +160,14 @@ public class ProductController {
         try {
             Product product = productService.getProductById(id).orElse(null);
             if (product == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Product not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Product not found"));
             }
             String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             productService.addProductImage(id, filename, file.getContentType(), file.getBytes());
-            return ResponseEntity.ok().body("Image uploaded successfully");
+            return ResponseEntity.ok().body(Map.of("message", "Image uploaded successfully"));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(500).body("Failed to upload image: " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to upload image: " + e.getMessage()));
         }
     }
 
