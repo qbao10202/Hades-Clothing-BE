@@ -174,48 +174,17 @@ public class ProductController {
     @GetMapping("/{productId}/images/{filename:.+}")
     @Operation(summary = "Serve product image from DB", description = "Serve a product image by filename from the database")
     public ResponseEntity<?> serveProductImage(@PathVariable Long productId, @PathVariable String filename) {
-        System.out.println("Serving product image for productId: " + productId + ", filename: " + filename);
         ProductImage image = productImageRepository.findImagesByProductId(productId).stream()
                 .filter(img -> filename.equals(img.getImageUrl()))
                 .findFirst().orElse(null);
         if (image == null || image.getData() == null) {
-            System.out.println("Product image not found for productId: " + productId + ", filename: " + filename);
-            // Return 404 without body so frontend can handle with onImageError
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
         }
-        System.out.println("Product image found, data size: " + image.getData().length);
         ByteArrayResource resource = new ByteArrayResource(image.getData());
-        
-        // Ensure we have a valid content type
-        String contentType = image.getContentType();
-        if (contentType == null || contentType.trim().isEmpty()) {
-            contentType = "image/jpeg"; // Default to JPEG if content type is missing
-        }
-        System.out.println("Content type: " + contentType);
-        
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + image.getImageUrl() + "\"")
-                .contentType(MediaType.parseMediaType(contentType))
+                .contentType(MediaType.parseMediaType(image.getContentType()))
                 .body(resource);
-    }
-
-    @GetMapping("/{productId}/images/status")
-    @Operation(summary = "Check product images status", description = "Check if a product has images and return status info")
-    public ResponseEntity<?> checkProductImagesStatus(@PathVariable Long productId) {
-        List<ProductImage> images = productImageRepository.findImagesByProductId(productId);
-        boolean hasImages = images.stream().anyMatch(img -> img.getData() != null && img.getData().length > 0);
-        
-        return ResponseEntity.ok(Map.of(
-            "productId", productId,
-            "hasImages", hasImages,
-            "imageCount", images.size(),
-            "images", images.stream().map(img -> Map.of(
-                "id", img.getId(),
-                "imageUrl", img.getImageUrl(),
-                "contentType", img.getContentType(),
-                "dataSize", img.getData() != null ? img.getData().length : 0
-            )).collect(Collectors.toList())
-        ));
     }
     
     @GetMapping("/featured")

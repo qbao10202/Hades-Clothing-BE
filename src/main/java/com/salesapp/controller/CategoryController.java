@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -132,48 +131,16 @@ public class CategoryController {
     @GetMapping("/{id}/image")
     @Operation(summary = "Serve category image from DB", description = "Serve a category image as binary data from the database")
     public ResponseEntity<?> serveCategoryImage(@PathVariable Long id) {
-        System.out.println("Serving category image for ID: " + id);
         Optional<Category> categoryOpt = categoryRepository.findById(id);
         if (categoryOpt.isPresent() && categoryOpt.get().getImageData() != null) {
             Category category = categoryOpt.get();
-            System.out.println("Category found: " + category.getName() + ", Image data size: " + category.getImageData().length);
             ByteArrayResource resource = new ByteArrayResource(category.getImageData());
-            
-            // Ensure we have a valid content type
-            String contentType = category.getImageContentType();
-            if (contentType == null || contentType.trim().isEmpty()) {
-                contentType = "image/jpeg"; // Default to JPEG if content type is missing
-            }
-            System.out.println("Content type: " + contentType);
-            
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + category.getImageUrl() + "\"")
-                    .contentType(MediaType.parseMediaType(contentType))
+                    .contentType(MediaType.parseMediaType(category.getImageContentType()))
                     .body(resource);
         } else {
-            System.out.println("Category not found or no image data for ID: " + id);
-            // Return 404 without body so frontend can handle with onImageError
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @GetMapping("/{id}/image/status")
-    @Operation(summary = "Check category image status", description = "Check if a category has an image and return status info")
-    public ResponseEntity<?> checkCategoryImageStatus(@PathVariable Long id) {
-        Optional<Category> categoryOpt = categoryRepository.findById(id);
-        if (categoryOpt.isPresent()) {
-            Category category = categoryOpt.get();
-            boolean hasImage = category.getImageData() != null && category.getImageData().length > 0;
-            return ResponseEntity.ok(Map.of(
-                "categoryId", id,
-                "categoryName", category.getName(),
-                "hasImage", hasImage,
-                "imageDataSize", hasImage ? category.getImageData().length : 0,
-                "imageContentType", category.getImageContentType(),
-                "imageUrl", category.getImageUrl()
-            ));
-        } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Image not found");
         }
     }
 
